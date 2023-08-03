@@ -6,19 +6,19 @@ import { emailRegexp } from "../constants/user-constants.js";
 
 const userSchema = new Schema(
   {
-    name: {
+    password: {
       type: String,
-      required: true,
+      minlenth: 6,
+      required: [true, "Set password for user"],
     },
     email: {
       type: String,
       match: emailRegexp,
       unique: true,
-      required: true,
+      required: [true, "Email is required"],
     },
-    password: {
+    name: {
       type: String,
-      minlenth: 6,
       required: true,
     },
   },
