@@ -9,7 +9,7 @@ import { HttpError } from "../helpers/index.js";
 
 const { JWT_SECRET } = process.env;
 
-const signup = async (req, res) => {
+const register = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (user) {
@@ -21,21 +21,23 @@ const signup = async (req, res) => {
   const newUser = await User.create({ ...req.body, password: hashPassword });
 
   res.status(201).json({
-    name: newUser.name,
-    email: newUser.email,
+    user: {
+      email: newUser.email,
+      password: newUser.password,
+    },
   });
 };
 
-const signin = async (req, res) => {
-  const { email, password } = req.body;
+const login = async (req, res) => {
+  const { email, password, subscription } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    throw HttpError(401, "Emmail or password invalid");
+    throw HttpError(401, "Email or password is wrong");
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
-    throw HttpError(401, "Emmail or password invalid");
+    throw HttpError(401, "Email or password is wrong");
   }
 
   const payload = {
@@ -47,18 +49,22 @@ const signin = async (req, res) => {
 
   res.json({
     token,
+    user: {
+      email,
+      subscription: user.subscription,
+    },
   });
 };
 
 const getCurrent = (req, res) => {
-  const { name, email } = req.user;
+  const { email, subscription } = req.user;
   res.json({
-    name,
     email,
+    subscription,
   });
 };
 
-const signout = async (req, res) => {
+const logout = async (req, res) => {
   const { _id } = req.user;
   await User.findByIdAndUpdate(_id, { token: "" });
 
@@ -68,8 +74,8 @@ const signout = async (req, res) => {
 };
 
 export default {
-  signup: ctrlWrapper(signup),
-  signin: ctrlWrapper(signin),
+  register: ctrlWrapper(register),
+  login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
-  signout: ctrlWrapper(signout),
+  logout: ctrlWrapper(logout),
 };

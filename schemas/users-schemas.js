@@ -2,11 +2,7 @@ import Joi from "joi";
 
 import { emailRegexp } from "../constants/user-constants.js";
 
-const userSignupSchema = Joi.object({
-  name: Joi.string().required().messages({
-    "any.required": "Name is required.",
-    "string.empty": "Name cannot be empty.",
-  }),
+const userRegisterSchema = Joi.object({
   email: Joi.string().pattern(emailRegexp).required().messages({
     "any.required": "Email is required.",
     "string.pattern.base": "Invalid email format.",
@@ -17,9 +13,18 @@ const userSignupSchema = Joi.object({
     "string.min": "Password should be at least 6 characters long.",
     "string.empty": "Password cannot be empty.",
   }),
+  subscription: Joi.string()
+    .valid("starter", "pro", "business")
+    .default("starter")
+    .optional()
+    .messages({
+      "string.empty": "Subscription cannot be empty.",
+      "any.only":
+        "Invalid subscription type. Allowed values: starter, pro, business.",
+    }),
 });
 
-const userSigninSchema = Joi.object({
+const userLoginSchema = Joi.object({
   email: Joi.string().pattern(emailRegexp).required().messages({
     "any.required": "Email is required.",
     "string.pattern.base": "Invalid email format.",
@@ -33,6 +38,6 @@ const userSigninSchema = Joi.object({
 });
 
 export default {
-  userSignupSchema,
-  userSigninSchema,
+  userRegisterSchema,
+  userLoginSchema,
 };

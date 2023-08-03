@@ -11,19 +11,19 @@ import { authenticate } from "../../middlewars/index.js";
 const authRouter = express.Router();
 
 authRouter.post(
-  "/signup",
-  validateBody(userSchemas.userSignupSchema),
-  authController.signup
+  "/users/register",
+  validateBody(userSchemas.userRegisterSchema),
+  authController.register
 );
 
 authRouter.post(
-  "/signin",
-  validateBody(userSchemas.userSigninSchema),
-  authController.signin
+  "/users/login",
+  validateBody(userSchemas.userLoginSchema),
+  authController.login
 );
 
-authRouter.get("/current", authenticate, authController.getCurrent);
+authRouter.get("/users/current", authenticate, authController.getCurrent);
 
-authRouter.post("/signout", authenticate, authController.signout);
+authRouter.post("/users/logout", authenticate, authController.logout);
 
 export default authRouter;
