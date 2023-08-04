@@ -37,7 +37,19 @@ const userLoginSchema = Joi.object({
   }),
 });
 
+const updateSubscriptionSchema = Joi.object({
+  subscription: Joi.string()
+    .valid("starter", "pro", "business")
+    .required()
+    .messages({
+      "any.required": "Subscription is required.",
+      "any.only":
+        "Invalid subscription type. Allowed values: starter, pro, business.",
+    }),
+});
+
 export default {
   userRegisterSchema,
   userLoginSchema,
+  updateSubscriptionSchema,
 };

@@ -73,9 +73,31 @@ const logout = async (req, res) => {
   });
 };
 
+const updatesubscription = async (req, res) => {
+  const { _id } = req.user;
+  const { subscription } = req.body;
+
+  const user = await User.findById(_id);
+  if (user.subscription === subscription) {
+    throw HttpError(400, `Subscription already set to '${subscription}'.`);
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    { subscription },
+    { new: true }
+  );
+
+  res.json({
+    email: updatedUser.email,
+    subscription: updatedUser.subscription,
+  });
+};
+
 export default {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
+  updatesubscription: ctrlWrapper(updatesubscription),
 };
