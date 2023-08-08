@@ -22,6 +22,9 @@ const userRegisterSchema = Joi.object({
       "any.only":
         "Invalid subscription type. Allowed values: starter, pro, business.",
     }),
+  avatarURL: Joi.string().uri().optional().messages({
+    "string.uri": "Invalid avatar URL format.",
+  }),
 });
 
 const userLoginSchema = Joi.object({

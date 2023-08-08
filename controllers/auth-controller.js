@@ -1,3 +1,6 @@
+import fs from "fs/promises";
+import path from "path";
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -9,6 +12,8 @@ import { HttpError } from "../helpers/index.js";
 
 const { JWT_SECRET } = process.env;
 
+const avatarPath = path.resolve("public", "avatars");
+
 const register = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -18,12 +23,24 @@ const register = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  const { path: oldPath, filename } = req.file;
+  const newPath = path.join(avatarPath, filename);
+  await fs.rename(oldPath, newPath);
+  const avatar = path.join("avatars", filename);
+
+  const newUser = await User.create({
+    ...req.body,
+    password: hashPassword,
+    avatarURL: avatar,
+  });
+
+  console.log(newUser);
 
   res.status(201).json({
     user: {
       email: newUser.email,
       password: newUser.password,
+      avatarURL: newUser.avatarURL,
     },
   });
 };

@@ -6,12 +6,13 @@ import { validateBody } from "../../decorators/index.js";
 
 import userSchemas from "../../schemas/users-schemas.js";
 
-import { authenticate } from "../../middlewars/index.js";
+import { authenticate, upload } from "../../middlewars/index.js";
 
 const authRouter = express.Router();
 
 authRouter.post(
   "/users/register",
+  upload.single("avatar"),
   validateBody(userSchemas.userRegisterSchema),
   authController.register
 );
