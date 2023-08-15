@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import request from "supertest";
 import "dotenv/config";
 
-import app from "../app.js";
+import app from "../../app.js";
 
-import User from "../models/user.js";
+import User from "../../models/user.js";
 
 const { PORT, DB_HOST_TEST } = process.env;
 
@@ -29,22 +29,22 @@ describe("test login route", () => {
 
   test("test login with correct data", async () => {
     const userData = {
-      email: "david@gmail.com",
+      email: "bemol@gmail.com",
       password: "123456",
     };
 
-    // Create a new user for testing
-    await User.create(userData);
+    // Сначала создаем пользователя
+    const createdUser = await User.create(userData);
 
-    const response = await request(app).post("/api/users/login").send(userData);
+    // Выполняем вход с данными созданного пользователя
+    const { statusCode, body } = await request(app)
+      .post("/api/auth/users/login")
+      .send(userData);
 
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty("token");
-    expect(response.body.user).toHaveProperty("email", userData.email);
-    expect(response.body.user).toHaveProperty(
-      "subscription",
-      expect.any(String)
-    );
+    expect(statusCode).toBe(200);
+    expect(body).toHaveProperty("token");
+    expect(body.user).toHaveProperty("email", userData.email);
+    expect(body.user).toHaveProperty("subscription", expect.any(String));
 
     const user = await User.findOne({ email: userData.email });
     expect(user).not.toBeNull();
