@@ -1,8 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
+import jimp from "jimp";
 
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+import gravatar from "gravatar";
 
 import User from "../models/user.js";
 
@@ -23,23 +26,34 @@ const register = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const { path: oldPath, filename } = req.file;
-  const newPath = path.join(avatarPath, filename);
-  await fs.rename(oldPath, newPath);
-  const avatar = path.join("avatars", filename);
+  let avatarURL = "";
+
+  if (req.file) {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarPath, filename);
+
+    const image = await jimp.read(oldPath);
+    await image.cover(250, 250).writeAsync(newPath);
+
+    avatarURL = path.join("avatars", filename);
+  } else {
+    avatarURL = gravatar.url(email, {
+      s: "250",
+      r: "pg",
+      d: "mm",
+      ext: "jpg",
+    });
+  }
 
   const newUser = await User.create({
     ...req.body,
     password: hashPassword,
-    avatarURL: avatar,
+    avatarURL,
   });
-
-  console.log(newUser);
 
   res.status(201).json({
     user: {
       email: newUser.email,
-      password: newUser.password,
       avatarURL: newUser.avatarURL,
     },
   });
@@ -111,10 +125,29 @@ const updatesubscription = async (req, res) => {
   });
 };
 
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tmpPath, filename } = req.file;
+
+  const avatarPath = path.join("avatars", filename);
+
+  const image = await jimp.read(tmpPath);
+  await image.cover(250, 250).writeAsync(avatarPath);
+
+  await fs.unlink(tmpPath);
+
+  await User.findByIdAndUpdate(_id, { avatarURL: `avatars/${filename}` });
+
+  res.json({
+    avatarURL: `avatars/${filename}`,
+  });
+};
+
 export default {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   updatesubscription: ctrlWrapper(updatesubscription),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
