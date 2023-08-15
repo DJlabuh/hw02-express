@@ -1,5 +1,11 @@
+import fs from "fs/promises";
+import path from "path";
+import jimp from "jimp";
+
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+import gravatar from "gravatar";
 
 import User from "../models/user.js";
 
@@ -8,6 +14,8 @@ import { ctrlWrapper } from "../decorators/index.js";
 import { HttpError } from "../helpers/index.js";
 
 const { JWT_SECRET } = process.env;
+
+const avatarPath = path.resolve("public", "avatars");
 
 const register = async (req, res) => {
   const { email, password } = req.body;
@@ -18,12 +26,37 @@ const register = async (req, res) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  const newUser = await User.create({ ...req.body, password: hashPassword });
+  let avatarURL = "";
+
+  if (req.file) {
+    const { path: oldPath, filename } = req.file;
+    const newPath = path.join(avatarPath, filename);
+
+    const image = await jimp.read(oldPath);
+    await image.cover(250, 250).writeAsync(newPath);
+
+    await fs.rename(oldPath, newPath);
+
+    avatarURL = path.join("avatars", filename);
+  } else {
+    avatarURL = gravatar.url(email, {
+      s: "250",
+      r: "pg",
+      d: "wavatar",
+      ext: "jpg",
+    });
+  }
+
+  const newUser = await User.create({
+    ...req.body,
+    password: hashPassword,
+    avatarURL,
+  });
 
   res.status(201).json({
     user: {
       email: newUser.email,
-      password: newUser.password,
+      avatarURL: newUser.avatarURL,
     },
   });
 };
@@ -94,10 +127,28 @@ const updatesubscription = async (req, res) => {
   });
 };
 
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: oldPath, filename } = req.file;
+  const newPath = path.join(avatarPath, filename);
+
+  const image = await jimp.read(oldPath);
+  await image.cover(250, 250).writeAsync(newPath);
+
+  await fs.rename(oldPath, newPath);
+
+  await User.findByIdAndUpdate(_id, { avatarURL: `avatars/${filename}` });
+
+  res.json({
+    avatarURL: `avatars/${filename}`,
+  });
+};
+
 export default {
   register: ctrlWrapper(register),
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   updatesubscription: ctrlWrapper(updatesubscription),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
