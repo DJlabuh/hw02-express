@@ -35,12 +35,14 @@ const register = async (req, res) => {
     const image = await jimp.read(oldPath);
     await image.cover(250, 250).writeAsync(newPath);
 
+    await fs.rename(oldPath, newPath);
+
     avatarURL = path.join("avatars", filename);
   } else {
     avatarURL = gravatar.url(email, {
       s: "250",
       r: "pg",
-      d: "mm",
+      d: "wavatar",
       ext: "jpg",
     });
   }
@@ -127,14 +129,13 @@ const updatesubscription = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
-  const { path: tmpPath, filename } = req.file;
+  const { path: oldPath, filename } = req.file;
+  const newPath = path.join(avatarPath, filename);
 
-  const avatarPath = path.join("avatars", filename);
+  const image = await jimp.read(oldPath);
+  await image.cover(250, 250).writeAsync(newPath);
 
-  const image = await jimp.read(tmpPath);
-  await image.cover(250, 250).writeAsync(avatarPath);
-
-  await fs.unlink(tmpPath);
+  await fs.rename(oldPath, newPath);
 
   await User.findByIdAndUpdate(_id, { avatarURL: `avatars/${filename}` });
 
