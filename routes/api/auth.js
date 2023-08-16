@@ -17,6 +17,14 @@ authRouter.post(
   authController.register
 );
 
+authRouter.get("/verify/:varificationCode", authController.verify);
+
+authRouter.post(
+  "/verify",
+  validateBody(userSchemas.userEmailSchema),
+  authController.resendVerifyEmail
+);
+
 authRouter.post(
   "/users/login",
   validateBody(userSchemas.userLoginSchema),

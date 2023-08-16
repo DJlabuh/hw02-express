@@ -27,6 +27,14 @@ const userRegisterSchema = Joi.object({
   }),
 });
 
+const userEmailSchema = Joi.object({
+  email: Joi.string().pattern(emailRegexp).required().messages({
+    "any.required": "Email is required.",
+    "string.pattern.base": "Invalid email format.",
+    "string.empty": "Email cannot be empty.",
+  }),
+});
+
 const userLoginSchema = Joi.object({
   email: Joi.string().pattern(emailRegexp).required().messages({
     "any.required": "Email is required.",
@@ -53,6 +61,7 @@ const updateSubscriptionSchema = Joi.object({
 
 export default {
   userRegisterSchema,
+  userEmailSchema,
   userLoginSchema,
   updateSubscriptionSchema,
 };
