@@ -17,10 +17,10 @@ authRouter.post(
   authController.register
 );
 
-authRouter.get("/verify/:varificationCode", authController.verify);
+authRouter.get("/users/verify/:verificationToken", authController.verify);
 
 authRouter.post(
-  "/verify",
+  "/users/verify",
   validateBody(userSchemas.userEmailSchema),
   authController.resendVerifyEmail
 );
